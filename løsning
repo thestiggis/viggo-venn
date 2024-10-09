@@ -1,0 +1,44 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Wed Oct  9 10:41:38 2024
+
+@author: stian
+"""
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Funksjonen fra oppgave_b_utdelt.py
+def formel(x):
+    return 0.5 * x**4 - 40 * x**2 + 1000
+
+# Step 1: Lag numpy array fra -10 til 10 (heltall)
+x_values = np.arange(-10, 11, 1)
+
+# Step 2: Kjør funksjonen på hvert element i arrayen
+y_values = formel(x_values)
+
+# Step 3: Lag en ny numpy array med avstand 0.5 mellom verdiene
+x_values_spaced = np.arange(-10, 10.5, 0.5)
+y_values_spaced = formel(x_values_spaced)
+
+# Step 4: Plot de to subplots
+plt.figure(figsize=(10, 5))
+
+# Subplot 1: Heltall fra -10 til 10
+plt.subplot(1, 2, 1)
+plt.plot(x_values, y_values, marker='o')
+plt.title("Heltall fra -10 til 10")
+plt.xlabel("x-verdier")
+plt.ylabel("y-verdier")
+
+# Subplot 2: Verdier med avstand 0.5
+plt.subplot(1, 2, 2)
+plt.plot(x_values_spaced, y_values_spaced, marker='o')
+plt.title("Verdier med avstand 0.5")
+plt.xlabel("x-verdier")
+plt.ylabel("y-verdier")
+
+# Juster layout
+plt.tight_layout()
+plt.show()
