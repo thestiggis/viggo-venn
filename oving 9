@@ -1,0 +1,46 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+
+# Lese CSV-filen med solflekkdata (erstatte med riktig filbane hvis nødvendig)
+file_path = 'CSVfil.csv'
+
+# Lese CSV-filen med semikolon som separator
+csv_data = pd.read_csv(file_path, sep=';')
+
+# Filtrere ut nødvendige kolonner: 'År' og 'Antall solflekker'
+# Kolonne 0 er År, kolonne 4 er Antall solflekker
+filtered_data = csv_data[[csv_data.columns[0], csv_data.columns[4]]]
+filtered_data.columns = ['Aar', 'Solflekker']
+
+# Fjerne rader der antall solflekker er -1 (manglende data)
+filtered_data = filtered_data[filtered_data['Solflekker'] != -1]
+
+# Konverter År og Solflekker til riktige datatyper
+filtered_data['Aar'] = filtered_data['Aar'].astype(int)
+filtered_data['Solflekker'] = filtered_data['Solflekker'].astype(int)
+
+# Gruppere etter år og beregne statistikk for hver år (min, maks, gjennomsnitt)
+yearly_stats = filtered_data.groupby('Aar').agg(
+    Min_Solflekker=('Solflekker', 'min'),
+    Gjennomsnitt_Solflekker=('Solflekker', 'mean'),
+    Maks_Solflekker=('Solflekker', 'max')
+).reset_index()
+
+# Plotting av solflekkstatistikk
+plt.figure(figsize=(10, 6))
+
+# Plotting av minimum, gjennomsnitt og maksimum solflekker
+plt.plot(yearly_stats['Aar'], yearly_stats['Min_Solflekker'], label='Min Solflekker')
+plt.plot(yearly_stats['Aar'], yearly_stats['Gjennomsnitt_Solflekker'], label='Gjennomsnitt Solflekker')
+plt.plot(yearly_stats['Aar'], yearly_stats['Maks_Solflekker'], label='Maks Solflekker')
+
+# Legge til tittel og aksetiketter
+plt.title('Solflekkaktivitet per År')
+plt.xlabel('År')
+plt.ylabel('Antall Solflekker per Dag')
+
+# Legge til en legende
+plt.legend()
+
+# Vise plottet
+plt.show()
