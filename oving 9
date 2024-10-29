@@ -1,46 +1,63 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 
-# Lese CSV-filen med solflekkdata (erstatte med riktig filbane hvis nødvendig)
-file_path = 'CSVfil.csv'
+class Maalinger_aar:
+    def __init__(self, aar):
+        self.aar = aar
+        self.total_solflekker = 0
+        self.antall_maalinger = 0
+        self.maks_daglig = float('-inf')
+        self.min_daglig = float('inf')
 
-# Lese CSV-filen med semikolon som separator
-csv_data = pd.read_csv(file_path, sep=';')
+    def legg_til_maaling(self, solflekker):
+        # Only count valid measurements
+        if solflekker != -1:
+            self.total_solflekker += solflekker
+            self.antall_maalinger += 1
+            if solflekker > self.maks_daglig:
+                self.maks_daglig = solflekker
+            if solflekker < self.min_daglig:
+                self.min_daglig = solflekker
 
-# Filtrere ut nødvendige kolonner: 'År' og 'Antall solflekker'
-# Kolonne 0 er År, kolonne 4 er Antall solflekker
-filtered_data = csv_data[[csv_data.columns[0], csv_data.columns[4]]]
-filtered_data.columns = ['Aar', 'Solflekker']
+    def gjennomsnitt_solflekker(self):
+        return self.total_solflekker / self.antall_maalinger if self.antall_maalinger else 0
 
-# Fjerne rader der antall solflekker er -1 (manglende data)
-filtered_data = filtered_data[filtered_data['Solflekker'] != -1]
 
-# Konverter År og Solflekker til riktige datatyper
-filtered_data['Aar'] = filtered_data['Aar'].astype(int)
-filtered_data['Solflekker'] = filtered_data['Solflekker'].astype(int)
+# Hovedprogram
+if __name__ == "__main__":
+    # Lese CSV-filen med solflekkdata
+    file_path = 'CSVfil.csv'
+    csv_data = pd.read_csv(file_path, sep=';')
 
-# Gruppere etter år og beregne statistikk for hver år (min, maks, gjennomsnitt)
-yearly_stats = filtered_data.groupby('Aar').agg(
-    Min_Solflekker=('Solflekker', 'min'),
-    Gjennomsnitt_Solflekker=('Solflekker', 'mean'),
-    Maks_Solflekker=('Solflekker', 'max')
-).reset_index()
+    # Filtrere ut nødvendige kolonner: 'År' og 'Antall solflekker'
+    filtered_data = csv_data[[csv_data.columns[0], csv_data.columns[4]]]
+    filtered_data.columns = ['Aar', 'Solflekker']
 
-# Plotting av solflekkstatistikk
-plt.figure(figsize=(10, 6))
+    # Fjerne rader der antall solflekker er -1 (manglende data)
+    filtered_data = filtered_data[filtered_data['Solflekker'] != -1]
 
-# Plotting av minimum, gjennomsnitt og maksimum solflekker
-plt.plot(yearly_stats['Aar'], yearly_stats['Min_Solflekker'], label='Min Solflekker')
-plt.plot(yearly_stats['Aar'], yearly_stats['Gjennomsnitt_Solflekker'], label='Gjennomsnitt Solflekker')
-plt.plot(yearly_stats['Aar'], yearly_stats['Maks_Solflekker'], label='Maks Solflekker')
+    # Opprette dictionary for å lagre Maalinger_aar objekter
+    aar_dict = {}
 
-# Legge til tittel og aksetiketter
-plt.title('Solflekkaktivitet per År')
-plt.xlabel('År')
-plt.ylabel('Antall Solflekker per Dag')
+    # Legge til solflekkmålinger i år-dictionary
+    for _, row in filtered_data.iterrows():
+        aar, solflekker = row['Aar'], row['Solflekker']
+        if aar not in aar_dict:
+            aar_dict[aar] = Maalinger_aar(aar)
+        aar_dict[aar].legg_til_maaling(solflekker)
 
-# Legge til en legende
-plt.legend()
+    # Samle data for plotting
+    aar_list = sorted(aar_dict.keys())
+    min_solflekker = [aar_dict[aar].min_daglig for aar in aar_list]
+    maks_solflekker = [aar_dict[aar].maks_daglig for aar in aar_list]
+    gjennomsnitt_solflekker = [aar_dict[aar].gjennomsnitt_solflekker() for aar in aar_list]
 
-# Vise plottet
-plt.show()
+    # Plotting
+    plt.plot(aar_list, min_solflekker, label="Min Daglig Solflekker")
+    plt.plot(aar_list, maks_solflekker, label="Maks Daglig Solflekker")
+    plt.plot(aar_list, gjennomsnitt_solflekker, label="Gjennomsnitt Solflekker")
+    plt.xlabel("År")
+    plt.ylabel("Antall Solflekker")
+    plt.title("Solflekkaktivitet per År")
+    plt.legend()
+    plt.show()
